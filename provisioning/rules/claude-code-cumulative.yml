@@ -1,0 +1,77 @@
+groups:
+  - name: claude_code_cumulative
+    interval: 30s
+    rules:
+      # 累计费用 - 按模型统计
+      - record: claude_code:cost_total
+        expr: |
+          (
+            claude_code:cost_total offset 30s
+            or
+            vector(0)
+          ) + on() (
+            sum(increase(claude_code_cost_usage[30s])) 
+            or 
+            vector(0)
+          )
+        labels:
+          aggregation: "total"
+      
+      - record: claude_code:cost_total_by_model
+        expr: |
+          (
+            claude_code:cost_total_by_model offset 30s
+            or
+            vector(0)
+          ) + on(model) (
+            sum by (model) (increase(claude_code_cost_usage[30s]))
+            or
+            vector(0)
+          )
+        labels:
+          aggregation: "by_model"
+      
+      # 累计token使用量
+      - record: claude_code:token_total_by_type
+        expr: |
+          (
+            claude_code:token_total_by_type offset 30s
+            or
+            vector(0)
+          ) + on(type) (
+            sum by (type) (increase(claude_code_token_usage[30s]))
+            or
+            vector(0)
+          )
+        labels:
+          aggregation: "by_type"
+      
+      # 累计代码行数
+      - record: claude_code:lines_total_by_type
+        expr: |
+          (
+            claude_code:lines_total_by_type offset 30s
+            or
+            vector(0)
+          ) + on(type) (
+            sum by (type) (increase(claude_code_lines_of_code_count[30s]))
+            or
+            vector(0)
+          )
+        labels:
+          aggregation: "by_type"
+      
+      # 累计工具决策次数
+      - record: claude_code:tool_decisions_total
+        expr: |
+          (
+            claude_code:tool_decisions_total offset 30s
+            or
+            vector(0)
+          ) + on(decision, tool_name, language) (
+            sum by (decision, tool_name, language) (increase(claude_code_code_edit_tool_decision[30s]))
+            or
+            vector(0)
+          )
+        labels:
+          aggregation: "by_decision_tool_language"

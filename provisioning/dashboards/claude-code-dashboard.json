@@ -9,11 +9,11 @@
   "panels": [
     {
       "id": 1,
-      "title": "📈 Lines of Code Changed",
+      "title": "📈 Lines of Code Changed (1h)",
       "type": "stat",
       "targets": [
         {
-          "expr": "sum(claude_code_lines_of_code_count{type=\"added\"})",
+          "expr": "sum(increase(claude_code_lines_of_code_count{type=\"added\"}[1h]))",
           "refId": "A",
           "legendFormat": "Added",
           "datasource": {
@@ -22,7 +22,7 @@
           }
         },
         {
-          "expr": "sum(claude_code_lines_of_code_count{type=\"removed\"})",
+          "expr": "sum(increase(claude_code_lines_of_code_count{type=\"removed\"}[1h]))",
           "refId": "B",
           "legendFormat": "Removed",
           "datasource": {
@@ -56,7 +56,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "rate(claude_code_lines_of_code_count{type=\"added\"}[5m]) * 60",
+          "expr": "sum by () (rate(claude_code_lines_of_code_count{type=\"added\"}[5m])) * 60",
           "refId": "A",
           "legendFormat": "Lines Added per Minute",
           "datasource": {
@@ -65,7 +65,7 @@
           }
         },
         {
-          "expr": "rate(claude_code_lines_of_code_count{type=\"removed\"}[5m]) * 60",
+          "expr": "sum by () (rate(claude_code_lines_of_code_count{type=\"removed\"}[5m])) * 60",
           "refId": "B", 
           "legendFormat": "Lines Removed per Minute",
           "datasource": {
@@ -83,11 +83,11 @@
     },
     {
       "id": 3,
-      "title": "⚡ Performance Metrics",
+      "title": "⚡ Performance Metrics (1h)",
       "type": "table",
       "targets": [
         {
-          "expr": "sum(claude_code_lines_of_code_count{type=\"added\"}) / sum(claude_code_cost_usage)",
+          "expr": "sum(increase(claude_code_lines_of_code_count{type=\"added\"}[1h])) / sum(increase(claude_code_cost_usage[1h]))",
           "refId": "A",
           "format": "table",
           "instant": true
@@ -107,11 +107,11 @@
     },
     {
       "id": 4,
-      "title": "🎯 AI Suggestion Accept Rate",
+      "title": "🎯 AI Suggestion Accept Rate (All Time)",
       "type": "stat",
       "targets": [
         {
-          "expr": "sum(claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum(claude_code_code_edit_tool_decision) * 100",
+          "expr": "sum(claude_code:tool_decisions_total{decision=\"accept\"}) / sum(claude_code:tool_decisions_total) * 100",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -138,11 +138,11 @@
     },
     {
       "id": 5,
-      "title": "🔢 Token Usage Distribution",
+      "title": "🔢 Token Usage Distribution (All Time)",
       "type": "piechart",
       "targets": [
         {
-          "expr": "sum by (type) (claude_code_token_usage)",
+          "expr": "claude_code:token_total_by_type",
           "refId": "A",
           "legendFormat": "{{type}}",
           "datasource": {
@@ -159,11 +159,11 @@
     },
     {
       "id": 6,
-      "title": "⚡ Cache Hit Rate",
+      "title": "⚡ Cache Hit Rate (1h)",
       "type": "stat",
       "targets": [
         {
-          "expr": "sum(claude_code_token_usage{type=\"cacheRead\"}) / sum(claude_code_token_usage{type=~\"input|cacheRead\"}) * 100",
+          "expr": "sum(increase(claude_code_token_usage{type=\"cacheRead\"}[1h])) / sum(increase(claude_code_token_usage{type=~\"input|cacheRead\"}[1h])) * 100",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -190,11 +190,11 @@
     },
     {
       "id": 7,
-      "title": "💰 Total Cost",
+      "title": "💰 Total Cost (All Time)",
       "type": "stat",
       "targets": [
         {
-          "expr": "sum(claude_code_cost_usage)",
+          "expr": "claude_code:cost_total",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -271,7 +271,7 @@
       "type": "timeseries",
       "targets": [
         {
-          "expr": "rate(claude_code_cost_usage[5m]) * 60",
+          "expr": "sum by (model) (rate(claude_code_cost_usage[5m])) * 60",
           "refId": "A",
           "legendFormat": "{{model}}",
           "datasource": {
@@ -293,7 +293,7 @@
       "type": "barchart",
       "targets": [
         {
-          "expr": "sum by (tool_name) (claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum by (tool_name) (claude_code_code_edit_tool_decision) * 100",
+          "expr": "sum by (tool_name) (increase(claude_code_code_edit_tool_decision{decision=\"accept\"}[1h])) / sum by (tool_name) (increase(claude_code_code_edit_tool_decision[1h])) * 100",
           "refId": "A",
           "legendFormat": "{{tool_name}}",
           "datasource": {
@@ -315,7 +315,7 @@
       "type": "barchart", 
       "targets": [
         {
-          "expr": "sum by (language) (claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum by (language) (claude_code_code_edit_tool_decision) * 100",
+          "expr": "sum by (language) (increase(claude_code_code_edit_tool_decision{decision=\"accept\"}[1h])) / sum by (language) (increase(claude_code_code_edit_tool_decision[1h])) * 100",
           "refId": "A",
           "legendFormat": "{{language}}",
           "datasource": {
@@ -337,7 +337,7 @@
       "type": "stat",
       "targets": [
         {
-          "expr": "(sum(claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum(claude_code_code_edit_tool_decision)) * (sum(claude_code_token_usage{type=\"cacheRead\"}) / sum(claude_code_token_usage{type=~\"input|cacheRead\"})) * 100",
+          "expr": "(sum(increase(claude_code_code_edit_tool_decision{decision=\"accept\"}[1h])) / sum(increase(claude_code_code_edit_tool_decision[1h]))) * (sum(increase(claude_code_token_usage{type=\"cacheRead\"}[1h])) / sum(increase(claude_code_token_usage{type=~\"input|cacheRead\"}[1h]))) * 100",
           "refId": "A",
           "datasource": {
             "type": "prometheus",
@@ -365,6 +365,76 @@
     },
     {
       "id": 13,
+      "title": "💰 Total Cost by Model (All Time)",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "claude_code:cost_total_by_model",
+          "refId": "A",
+          "legendFormat": "{{model}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 36},
+      "options": {
+        "pieType": "donut",
+        "displayLabels": ["name", "value"]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      }
+    },
+    {
+      "id": 14,
+      "title": "📈 Total Lines of Code (All Time)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "claude_code:lines_total_by_type{type=\"added\"}",
+          "refId": "A",
+          "legendFormat": "Added",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "claude_code:lines_total_by_type{type=\"removed\"}",
+          "refId": "B",
+          "legendFormat": "Removed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 36},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 15,
       "title": "👥 Top Users by Activity",
       "type": "table",
       "targets": [
@@ -379,7 +449,7 @@
           }
         }
       ],
-      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 36},
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 42},
       "transformations": [
         {
           "id": "organize",
@@ -391,6 +461,146 @@
           }
         }
       ]
+    },
+    {
+      "id": 16,
+      "title": "🏆 Tool Decision Summary (All Time)",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "claude_code:tool_decisions_total",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 42},
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "decision": "Decision",
+              "tool_name": "Tool",
+              "language": "Language",
+              "Value": "Count"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "title": "📈 Total Tokens by Type (All Time)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "claude_code:token_total_by_type{type=\"input\"}",
+          "refId": "A",
+          "legendFormat": "Input",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "claude_code:token_total_by_type{type=\"output\"}",
+          "refId": "B",
+          "legendFormat": "Output",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "claude_code:token_total_by_type{type=\"cacheRead\"}",
+          "refId": "C",
+          "legendFormat": "Cache Read",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 48},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 18,
+      "title": "💎 Efficiency Metrics (All Time)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "claude_code:lines_total_by_type{type=\"added\"} / claude_code:cost_total",
+          "refId": "A",
+          "legendFormat": "Lines per Dollar",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "claude_code:token_total_by_type{type=\"cacheRead\"} / (claude_code:token_total_by_type{type=\"input\"} + claude_code:token_total_by_type{type=\"cacheRead\"}) * 100",
+          "refId": "B",
+          "legendFormat": "Overall Cache Hit %",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 48},
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Lines per Dollar"},
+            "properties": [{"id": "unit", "value": "short"}]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Overall Cache Hit %"},
+            "properties": [{"id": "unit", "value": "percent"}]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      }
     }
   ],
   "time": {
