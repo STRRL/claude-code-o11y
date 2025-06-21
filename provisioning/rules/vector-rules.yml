@@ -1,0 +1,20 @@
+groups:
+  - name: vector.recording-rules
+    rules:
+      - record: vector:memory_usage_mb
+        expr: vector_memory_rss_bytes / 1024 / 1024
+
+      - record: vector:cpu_usage_rate
+        expr: rate(vector_cpu_seconds_total[5m])
+
+      - record: vector:events_received_rate
+        expr: rate(vector_component_received_events_total[5m])
+
+      - record: vector:events_sent_rate
+        expr: rate(vector_component_sent_events_total[5m])
+
+      - record: vector:bytes_received_rate
+        expr: rate(vector_component_received_bytes_total[5m])
+
+      - record: vector:bytes_sent_rate
+        expr: rate(vector_component_sent_bytes_total[5m])

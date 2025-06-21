@@ -1,0 +1,55 @@
+# Vector configuration for Claude Code observability
+data_dir = "/tmp/vector"
+
+[api]
+enabled = true
+address = "0.0.0.0:8686"
+
+# Internal metrics source
+[sources.internal_metrics]
+type = "internal_metrics"
+
+# Internal metrics sink
+[sinks.vector_metrics]
+type = "prometheus_exporter"
+inputs = ["internal_metrics"]
+address = "0.0.0.0:9092"
+
+# Sources - receive OTLP data
+[sources.otlp]
+type = "opentelemetry"
+grpc.address = "0.0.0.0:4317"
+http.address = "0.0.0.0:4318"
+
+# Transform metrics to fix naming - replace dots with underscores
+[transforms.fix_metric_names]
+type = "remap"
+inputs = ["otlp.metrics"]
+source = '''
+# Replace dots with underscores in metric names for Prometheus compatibility
+.name = replace!(.name, ".", "_")
+
+# Fix label names by replacing dots with underscores
+if exists(.tags) {
+  new_tags = {}
+  for_each(object!(.tags)) -> |key, value| {
+    new_key = replace(string!(key), ".", "_")
+    new_tags = set!(new_tags, [new_key], value)
+  }
+  .tags = new_tags
+}
+'''
+
+# Sinks - output to Prometheus and Loki  
+[sinks.prometheus_metrics]
+type = "prometheus_exporter"
+inputs = ["fix_metric_names"]
+address = "0.0.0.0:9091"
+
+[sinks.loki_logs]
+type = "loki"
+inputs = ["otlp.logs"]
+endpoint = "http://loki:3100"
+encoding.codec = "json"
+labels.job = "claude-code"
+labels.source = "vector"

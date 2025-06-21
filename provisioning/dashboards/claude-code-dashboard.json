@@ -1,0 +1,403 @@
+{
+  "id": null,
+  "title": "Claude Code Analytics",
+  "tags": ["claude-code", "analytics"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "📈 Lines of Code Changed",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(claude_code_lines_of_code_count{type=\"added\"})",
+          "refId": "A",
+          "legendFormat": "Added",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "sum(claude_code_lines_of_code_count{type=\"removed\"})",
+          "refId": "B",
+          "legendFormat": "Removed",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto",
+        "colorMode": "value"
+      }
+    },
+    {
+      "id": 2,
+      "title": "📈 Code Generation Productivity",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(claude_code_lines_of_code_count{type=\"added\"}[5m]) * 60",
+          "refId": "A",
+          "legendFormat": "Lines Added per Minute",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        },
+        {
+          "expr": "rate(claude_code_lines_of_code_count{type=\"removed\"}[5m]) * 60",
+          "refId": "B", 
+          "legendFormat": "Lines Removed per Minute",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "⚡ Performance Metrics",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "sum(claude_code_lines_of_code_count{type=\"added\"}) / sum(claude_code_cost_usage)",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 6},
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "Value": "Lines per Dollar"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "🎯 AI Suggestion Accept Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum(claude_code_code_edit_tool_decision) * 100",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 6},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 60},
+              {"color": "green", "value": 80}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "🔢 Token Usage Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum by (type) (claude_code_token_usage)",
+          "refId": "A",
+          "legendFormat": "{{type}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 12},
+      "options": {
+        "pieType": "donut",
+        "displayLabels": ["name", "value"]
+      }
+    },
+    {
+      "id": 6,
+      "title": "⚡ Cache Hit Rate",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(claude_code_token_usage{type=\"cacheRead\"}) / sum(claude_code_token_usage{type=~\"input|cacheRead\"}) * 100",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 12},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "green", "value": 90}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "💰 Total Cost",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(claude_code_cost_usage)",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 18},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4,
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "orange", "value": 5},
+              {"color": "red", "value": 10}
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"],
+          "fields": ""
+        },
+        "textMode": "auto",
+        "colorMode": "background"
+      }
+    },
+    {
+      "id": 8,
+      "title": "💰 Real-time Cost Rate by Model ($/min)",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "sum by (model) (rate(claude_code_cost_usage[5m]) * 60)",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 18},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 4
+        }
+      },
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "model": "Model",
+              "Value": "$/min"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "💸 Cost Trend by Model",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(claude_code_cost_usage[5m]) * 60",
+          "refId": "A",
+          "legendFormat": "{{model}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 24},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "🛠️ Tool Acceptance Rate by Type",
+      "type": "barchart",
+      "targets": [
+        {
+          "expr": "sum by (tool_name) (claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum by (tool_name) (claude_code_code_edit_tool_decision) * 100",
+          "refId": "A",
+          "legendFormat": "{{tool_name}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 24},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "📊 Programming Language Acceptance",
+      "type": "barchart", 
+      "targets": [
+        {
+          "expr": "sum by (language) (claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum by (language) (claude_code_code_edit_tool_decision) * 100",
+          "refId": "A",
+          "legendFormat": "{{language}}",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 30},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "🎯 AI Effectiveness Score",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(sum(claude_code_code_edit_tool_decision{decision=\"accept\"}) / sum(claude_code_code_edit_tool_decision)) * (sum(claude_code_token_usage{type=\"cacheRead\"}) / sum(claude_code_token_usage{type=~\"input|cacheRead\"})) * 100",
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 30},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "green", "value": 75}
+            ]
+          }
+        }
+      },
+      "description": "Combined metric: Accept Rate × Cache Hit Rate"
+    },
+    {
+      "id": 13,
+      "title": "👥 Top Users by Activity",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "topk(10, sum by (user_email) (increase(claude_code_token_usage[1h])))",
+          "refId": "A",
+          "format": "table",
+          "instant": true,
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          }
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 36},
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "user_email": "User",
+              "Value": "Tokens Used (1h)"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "5s",
+  "version": 1,
+  "schemaVersion": 30
+}
